@@ -3,7 +3,7 @@ import uasyncio as asyncio
 from machine import Pin, freq
 from wificonnect import WiFiControl
 
-#=======================================================================
+
 class Main(WiFiControl):
     def __init__(self):
         super().__init__()
@@ -13,7 +13,8 @@ class Main(WiFiControl):
 
         loop = asyncio.get_event_loop()
         loop.create_task(self._heartbeat())             #Индикация подключения WiFi
-    
+
+
     #Индикация подключения WiFi
     async def _heartbeat(self):
         while True:
