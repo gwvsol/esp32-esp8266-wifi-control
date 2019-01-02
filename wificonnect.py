@@ -3,15 +3,15 @@ import uasyncio as asyncio
 gc.collect()                                #Очищаем RAM
 
 config = {}                                 #Основное хранилище настроек
+config['MODE_WiFi'] = 'ST'
 config['ssid'] = 'w2234'                    #SSID для подключения к WiFi
 config['wf_pass'] = 'Fedex##54'             #Пароль для подключения к WiFi
 config['IP'] = None                         #Дефолтный IP адрес
 config['internet_outage'] = True            #Интернет отключен(значение True)
-config['host'] = 'google.com'               #Хост на котором проверяем доступность интернета
 
 #=======================================================================
 #Базовый класс
-class HeatControlBase:
+class WiFiBase:
     DEBUG = False
     def __init__(self, config):
         self.config = config
@@ -94,7 +94,7 @@ class HeatControlBase:
 
 
 #=======================================================================
-class HeatControl(HeatControlBase):
+class WiFiControl(WiFiBase):
     def __init__(self):
         super().__init__(config)
         self._sta_if = network.WLAN(network.STA_IF)

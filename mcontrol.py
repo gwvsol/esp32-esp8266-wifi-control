@@ -1,10 +1,10 @@
 import gc
 import uasyncio as asyncio
 from machine import Pin
-from heat_control import HeatControl
+from wificonnect import WiFiControl
 
 #=======================================================================
-class Main(HeatControl):
+class Main(WiFiControl):
     def __init__(self):
         super().__init__()
         self.DEBUG = True                               #Режим отладки, делаем программу разговорчивой
