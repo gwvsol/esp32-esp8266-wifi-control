@@ -12,4 +12,9 @@
 #### Используемые библиотеки
 * [collections](https://github.com/micropython/micropython-lib/tree/master/collections/collections) и зависимости
 * [uasyncio](https://github.com/micropython/micropython-lib/tree/master/uasyncio/uasyncio) и зависисмоти
+<<<<<<< HEAD
+>>>>>>> dev
+=======
+
+Основная часть библиотеки файл ```wificonnect.py```, файл ```mcontroll.py``` показывает как использовать библиотеку
 >>>>>>> dev
