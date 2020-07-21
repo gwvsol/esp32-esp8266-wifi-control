@@ -1,5 +1,9 @@
 ## ESP32
 
+#### Документация  
+[NodeMCU Documentation](https://nodemcu.readthedocs.io/en/dev-esp32/)  
+[MicroPython documentation](https://docs.micropython.org/en/latest/index.html)  
+
 #### Статусы работы WiFi   
 ```network.STAT_BEACON_TIMEOUT```       - 200   - превышено время ответа роутера  
 ```network.STAT_NO_AP_FOUND```          - 201   - не удалось, потому что ни одна точка доступа не ответила  
