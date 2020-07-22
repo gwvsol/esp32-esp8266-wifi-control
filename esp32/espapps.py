@@ -3,6 +3,7 @@ import uasyncio as asyncio
 from machine import Pin, freq
 from espconfig import *
 from esputils import dprint
+from espwlan import WiFiConnect
 
 
 class MainApps(object):
@@ -14,9 +15,11 @@ class MainApps(object):
         self.memavalable = config['memavalable']
         self.freq        = config['freq']
         self.uptime      = config['uptime']
-
+        self.ip          = config['ip']
+        self.connect     = config['connect']
+        self.wifi        = WiFiConnect()
     
-    async def _run_main_loop(self):                                     #Бесконечный цикл
+    async def main_loop(self):                                     #Бесконечный цикл
         while True:
             self.memfree = str(round(gc.mem_free()/1024, 2))
             self.memavalable = str(round(gc.mem_alloc()/1024, 2))
@@ -38,7 +41,8 @@ class MainApps(object):
     async def main(self):
         while True:
             try:
-                await self._run_main_loop()
+                await self.wifi.setWlan()
+                await self.main_loop()
             except Exception as err:
                 self.dprint('Global communication failure: ', err)
                 await asyncio.sleep(20)
