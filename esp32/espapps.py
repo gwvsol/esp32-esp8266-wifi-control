@@ -11,26 +11,25 @@ class MainApps(object):
     def __init__(self):
         self.dprint      = dprint
         self.debug       = config['debug']
-        self.memfree     = config['memfree']
-        self.memavalable = config['memavalable']
-        self.freq        = config['freq']
-        self.uptime      = config['uptime']
-        self.ip          = config['ip']
-        self.connect     = config['connect']
-        self.wifi        = WiFiConnect()
+        self.uptime      = 0                                       # Время работы контроллера
+        self.wifi        = WiFiConnect()                           # Настрока сети
     
-    async def main_loop(self):                                     #Бесконечный цикл
-        while True:
-            self.memfree = str(round(gc.mem_free()/1024, 2))
-            self.memavalable = str(round(gc.mem_alloc()/1024, 2))
-            self.freq = str(freq()/1000000)
-            gc.collect()                                                #Очищаем RAM
+    async def main_loop(self):
+        """Метод для вывода служебной отладочной информации"""
+        while True:                                                # Бесконечный цикл
+            self.ip          = self.wifi.ip                        # IP адрес полученный c DHCP роутера
+            self.connect     = self.wifi.connect                   # False = Подключения нет, True = Подключение к сети WiFi
+            self.memfree = str(round(gc.mem_free()/1024, 2))       # Свободная память
+            self.memavalable = str(round(gc.mem_alloc()/1024, 2))  # Доступная помять
+            self.freq = str(freq()/1000000)                        # Частота работы ядра процессора
+            gc.collect()                                           # Очищаем RAM
             try:
                 self.dprint('################# DEBUG MESSAGE ##########################')
                 self.dprint('Uptime:', str(self.uptime)+' min')
                 self.dprint('MemFree:', '{}Kb'.format(self.memfree))
                 self.dprint('MemAvailab:', '{}Kb'.format(self.memavalable))
                 self.dprint('FREQ:', '{}MHz'.format(self.freq))
+                self.dprint('IP:', '{}'.format(self.ip))
                 self.dprint('################# DEBUG MESSAGE END ######################')
             except Exception as err:
                 self.dprint('Exception occurred: ', err)
@@ -41,14 +40,14 @@ class MainApps(object):
     async def main(self):
         while True:
             try:
-                await self.wifi.setWlan()
-                await self.main_loop()
+                await self.wifi.setWlan()                           # Включение настройки сети
+                await self.main_loop()                              # Вывод служебной информации
             except Exception as err:
                 self.dprint('Global communication failure: ', err)
                 await asyncio.sleep(20)
 
 
-gc.collect()                                            #Очищаем RAM
+gc.collect()                                                        # Очищаем RAM
 def_main = MainApps()
 loop = asyncio.get_event_loop()
 loop.run_until_complete(def_main.main())

@@ -8,24 +8,24 @@ class WiFiConnect(object):
 
     def __init__(self):
         self.dprint     = dprint
-        self.mode       = config['wifiMode']                        # False = AP, True = ST
-        self.connect    = config['connect']                         # False = Подключения нет, True = Подключение к сети WiFi
+        self.mode       = config['mode']        # False = AP, True = ST
         self.debug      = config['debug']
-        self.station    = config['mode']
-        self.ip         = config['ip']
+        self.connect    = False                 # False = Подключения нет, True = Подключение к сети WiFi
+        self.ip         = "xxx.xxx.xxx.xxx"     # IP адрес полученный c DHCP роутера
+        
 
     
     #Подключение к сети WiFi или поднятие точки доступа
     async def setWlan(self):
         """Метод для активации режимов работы WiFi модуля"""
-        if self.station: 
+        if self.mode: 
             self.wifi = network.WLAN(network.STA_IF)   # ST Mode
             self.ssid, self.passwd = config['stssid'], config['stpasswd']
         else: 
             self.wifi = network.WLAN(network.AP_IF)    # AP Mode
             self.ssid, self.passwd = config['apssid'], config['appasswd']
         self.wifi.active(True)       # activate the interface
-        if self.station: await setSTMode()
+        if self.mode: await self.setSTMode()
         else: pass
 
 
