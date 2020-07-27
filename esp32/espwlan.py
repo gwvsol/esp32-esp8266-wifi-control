@@ -24,14 +24,14 @@ class WiFiConnect(object):
         else: 
             self.wifi = network.WLAN(network.AP_IF)    # AP Mode
             self.ssid, self.passwd = config['apssid'], config['appasswd']
-        self.wifi.active(True)       # activate the interface
+        network.phy_mode(network.MODE_11B)      # network.phy_mode = MODE_11B
+        self.wifi.active(True)                  # activate the interface
         if self.mode: await self.setSTMode()
         else: pass
 
 
     async def setSTMode(self):
         """Метод для подключения к точке доступа"""
-        network.phy_mode(network.MODE_11B)      # network.phy_mode = MODE_11B
         if not self.wifi.isconnected():
             self.wifi.connect(self.ssid, self.passwd)
         while self.wifi.status() == network.STAT_CONNECTING:
@@ -42,4 +42,9 @@ class WiFiConnect(object):
             self.ip = self.wifi.ifconfig()[0]
             self.connect = True                 # соединение успешно установлено
             self.dprint('WiFi:', self.ip)
+
+
+    async def setAPMode(self):
+        """Метод для включения на миктрокотроллере режима точки доступа"""
+
 
