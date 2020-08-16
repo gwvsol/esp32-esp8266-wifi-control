@@ -9,10 +9,14 @@ from espwlan import WiFiConnect
 class MainApps(object):
 
     def __init__(self):
-        self.dprint      = dprint
-        self.debug       = config['debug']
-        self.uptime      = 0                                       # Время работы контроллера
-        self.wifi        = WiFiConnect()                           # Настрока сети
+        self.dprint          = dprint
+        self.debug           = config['debug']
+        self.mode            = config['mode']
+        self.ledBoard        = config['wifiLedPin']
+        self.ledBoardDefault = config['wifiLedDefault']
+        self.uptime          = 0                                   # Время работы контроллера
+        self.wifiLed         = Pin(self.ledBoard, Pin.OUT, value = self.ledBoardDefault) # Cветодиод для индикации работы WiFi
+        self.wifi            = WiFiConnect(led=self.wifiLed)       # Настрока сети
     
     async def main_loop(self):
         """Метод для вывода служебной отладочной информации"""
@@ -22,6 +26,8 @@ class MainApps(object):
             self.memfree = str(round(gc.mem_free()/1024, 2))       # Свободная память
             self.memavalable = str(round(gc.mem_alloc()/1024, 2))  # Доступная помять
             self.freq = str(freq()/1000000)                        # Частота работы ядра процессора
+            mode = 'Station' if self.mode else 'Access Point'      # Подготовка информации о режиме работы WiFi модуля
+            connect = 'Connect' if self.connect else 'Disconnect'  # Подготовка информации о соединении
             gc.collect()                                           # Очищаем RAM
             try:
                 self.dprint('################# DEBUG MESSAGE ##########################')
@@ -29,6 +35,8 @@ class MainApps(object):
                 self.dprint('MemFree:', '{}Kb'.format(self.memfree))
                 self.dprint('MemAvailab:', '{}Kb'.format(self.memavalable))
                 self.dprint('FREQ:', '{}MHz'.format(self.freq))
+                self.dprint('WiFi Mode:', mode)
+                self.dprint('WiFi:', connect)
                 self.dprint('IP:', '{}'.format(self.ip))
                 self.dprint('################# DEBUG MESSAGE END ######################')
             except Exception as err:
