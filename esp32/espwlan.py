@@ -5,23 +5,29 @@ from espconfig import *
 from esputils import dprint
 gc.collect()                                #Очищаем RAM
 
+"""Класс реализующий подключение в точке доступа 
+   или же поднятие точки доступа на WiFi модуле микроконтроллера"""
 
 class WiFiConnect(object):
 
     def __init__(self, led=None):
-        self.dprint     = dprint
+        self.dprint     = dprint                # Метод для логирования работы
         self.mode       = config['mode']        # False = AP, True = ST
         self.debug      = config['debug']       # True = Режим отладки, вывод всех сообщений через dprint
         self.connect    = False                 # False = Подключения нет, True = Подключение к сети WiFi
         self.ip         = "0.0.0.0"             # IP адрес
-        self.led        = led
+        self.led        = led                   # Если настройки светодиода не будут переданы, индикация не будет включена
         self.loop = asyncio.get_event_loop()
         if isinstance(self.led, Pin):
+            # Управление в отдельном процессе запускается только 
+            # если классу переданы настройки для работы светодиода
             self.loop.create_task(self.controlHeartbeat())
 
+############### Методы индикации состояния WiFi модуля микроконтроллера ###############
 
     async def heartbeat(self, interval: list=[1000]):
         """Метод для индикации работы WiFi"""
+        # Мигание согласно переданной программе (спикок интервалов)
         for i in interval:
             self.led(not self.led())
             await asyncio.sleep_ms(i)
@@ -29,21 +35,24 @@ class WiFiConnect(object):
     
     async def setHeartbeatDefault(self):
        """Метод для начальной уставноки состояния светодиода"""
+       # Работает только если классу переданы настройки светодиода
        if isinstance(self.led, Pin): self.led(0)
             
     
     async def controlHeartbeat(self):
         """Метод для управления работой работой светодиода wifi"""
         while True:
-            if self.mode and self.connect:
-                await self.heartbeat(interval=[100, 5000])
-            elif self.mode and not self.connect:
-                await self.heartbeat(interval=[200])
-            elif not self.mode:
-                await self.heartbeat(interval=[5000, 100, 100, 100])
+            # Одно короткое мигание и длинная пауза при успешном подключении к точке доступа
+            if self.mode and self.connect: await self.heartbeat(interval=[100, 5000])
+            # Быстрое мигание при отсутствии подключения
+            elif self.mode and not self.connect: await self.heartbeat(interval=[200])
+            # Длинная пауза и три быстрых мигания при поднятой точке доступа на микроконтроллере
+            elif not self.mode: await self.heartbeat(interval=[5000, 100, 100, 100])
                 
-    
-    # Настройка WiFi подключение к сети или поднятие точки доступа
+################## Методы для управления WiFi модулем микроконтроллера ###################
+
+    # Настройка WiFi подключение к сети или поднятие точки доступа (этот метод необходимо вызвать для
+    # поднятия точки доступа или подключения к точке доступа)
     async def setWlan(self):
         """Метод для активации режимов работы WiFi модуля"""
         # Подключение к сети
@@ -57,27 +66,27 @@ class WiFiConnect(object):
         self.wifi.active(True)                                                   # Активигуем интерфейс
         if self.mode: 
             await self.setSTMode()
+            # В режиме ST Mode запускаем в отдельном процессе контроль wifi соединения
             self.loop.create_task(self.checkWiFiStatus())
         else: await self.setAPMode()
     
 
-
     async def checkWiFiStatus(self):
         """Метод для проверки наличия соединения с точкой тоступа WiFi, 
            и вывода статуса соединения или режима работы (ST Mode или AP Mode)"""
+           # Этот метод крутится в отдельном процессе для контроля соединения
         while True:
-            # Что делаем в ST Mode и при наличии соединения
+            # При наличии соединения
             if self.mode and self.connect:
                 if await self.statusConnect() == network.STAT_GOT_IP:
                     await asyncio.sleep(30)     # Засыпаем
                 else: 
                     self.connect = False        # Cоединение отсутствует
                     await asyncio.sleep(1)      # Засыпаем
-            # Что делаем в ST Mode и при отсутствии соединения
+            # При отсутствии соединения
             elif self.mode and not self.connect:
-                await self.reconnectWifi()
+                await self.reconnectWifi()      # Переподключаемся
                 await asyncio.sleep(5)          # Засыпаем
-            await asyncio.sleep(1)
             gc.collect()
 
 
@@ -99,13 +108,13 @@ class WiFiConnect(object):
         while await self.statusConnect() == network.STAT_CONNECTING:
             await asyncio.sleep(1)
             count += 1
-            if count == 10: break
-        await self.setHeartbeatDefault()
+            if count == 10: break                # Если счетчик переполнился, выходим из цикла
         # Если соединение установлено
         if self.wifi.isconnected():
+            await self.setHeartbeatDefault()     # Сбрасываем состояние светодиода в дефолт
             self.ip = self.wifi.ifconfig()[0]
             self.dprint('WiFi: Connection successfully!')
-            self.connect = True                 # Cоединение успешно установлено
+            self.connect = True                  # Cоединение установлено
             self.dprint('WiFi: Address', self.ip)
         # Если соединение не установлено
         if not self.wifi.isconnected():
@@ -154,5 +163,5 @@ class WiFiConnect(object):
         self.wifi.config(channel=11)            # Канал точки доступа
         self.wifi.config(authmode=3)            # Способ аунтентиикации 0 – open, 1 – WEP, 2 – WPA-PSK, 3 – WPA2-PSK, 4 – WPA/WPA2-PSK 
         self.ip = self.wifi.ifconfig()[0]       # Выводим IP адрес точки доступа
-        await self.setHeartbeatDefault()
+        await self.setHeartbeatDefault()        # Сбрасываем состояние светодиода в дефолт
 

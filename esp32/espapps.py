@@ -5,6 +5,9 @@ from espconfig import *
 from esputils import dprint
 from espwlan import WiFiConnect
 
+"""Здесь реализуется основное приложение
+   подключена работа wifi модуля и его управление 
+   а так же вывод основной информации о работе микроконтроллера"""
 
 class MainApps(object):
 
