@@ -2,7 +2,7 @@ import gc, network
 import uasyncio as asyncio
 from machine import Pin
 from espconfig import *
-from esputils import dprint
+from esputils import log
 gc.collect()                                #Очищаем RAM
 
 """Класс реализующий подключение в точке доступа 
@@ -11,9 +11,9 @@ gc.collect()                                #Очищаем RAM
 class WiFiConnect(object):
 
     def __init__(self, led=None):
-        self.dprint     = dprint                # Метод для логирования работы
+        self.log     = log                # Метод для логирования работы
         self.mode       = config['mode']        # False = AP, True = ST
-        self.debug      = config['debug']       # True = Режим отладки, вывод всех сообщений через dprint
+        self.debug      = config['debug']       # True = Режим отладки, вывод всех сообщений через log
         self.connect    = False                 # False = Подключения нет, True = Подключение к сети WiFi
         self.ip         = "0.0.0.0"             # IP адрес
         self.led        = led                   # Если настройки светодиода не будут переданы, индикация не будет включена
@@ -92,7 +92,7 @@ class WiFiConnect(object):
 
     async def reconnectWifi(self):
         """Метод для переподключения к точке доступа WiFi"""
-        self.dprint('Reconnecting to WiFi...')
+        self.log('WiFiConnect => Reconnecting to WiFi...')
         self.ip = self.wifi.ifconfig()[0]   # Сбрасываем IP адрес к виду 0.0.0.0
         self.wifi.disconnect()              # Разрываем соединение, если они не разорвано
         await asyncio.sleep(1)              # Ожидаем
@@ -113,44 +113,44 @@ class WiFiConnect(object):
         if self.wifi.isconnected():
             await self.setHeartbeatDefault()     # Сбрасываем состояние светодиода в дефолт
             self.ip = self.wifi.ifconfig()[0]
-            self.dprint('WiFi: Connection successfully!')
+            self.log('WiFiConnect => Connection successfully!')
             self.connect = True                  # Cоединение установлено
-            self.dprint('WiFi: Address', self.ip)
+            self.log('WiFiConnect => Address', self.ip)
         # Если соединение не установлено
         if not self.wifi.isconnected():
             self.connect = False                 # Cоединение не установлено
-            self.dprint('WiFi: Connection unsuccessfully!')
+            self.log('WiFiConnect => Connection unsuccessfully!')
 
     
     async def statusConnect(self):
         """Метод для вывода информации о статусе соединения"""
         status = self.wifi.status()
         if status == network.STAT_GOT_IP:               # Соединение установлено
-            # self.dprint('WiFi: Connect OK')
+            # self.log('WiFiConnect => Connect OK')
             return network.STAT_GOT_IP
         elif status == network.STAT_CONNECTING:         # В процессе соединения...
-            self.dprint('WiFi: Connecting to WiFi...')
+            self.log('WiFiConnect => Connecting to WiFi...')
             return network.STAT_CONNECTING
         elif status == network.STAT_ASSOC_FAIL:         # Ошибка соединения
-            self.dprint('WiFi: Connection error')
+            self.log('WiFiConnect => Connection error')
             return network.STAT_ASSOC_FAIL
         elif status == network.STAT_HANDSHAKE_TIMEOUT:  # Превышено время соединения
-            self.dprint('WiFi: Connection time exceeded')
+            self.log('WiFiConnect => Connection time exceeded')
             return network.STAT_HANDSHAKE_TIMEOUT
         elif status == network.STAT_BEACON_TIMEOUT:     # Превышено время ответа роутера
-            self.dprint('WiFi: Exceeded response time of the router')
+            self.log('WiFiConnect => Exceeded response time of the router')
             return network.STAT_BEACON_TIMEOUT
         elif status == network.STAT_NO_AP_FOUND:        # Ни одна точка доступа не ответила
-            self.dprint('WiFi: None the access point did not answer')
+            self.log('WiFiConnect => None the access point did not answer')
             return network.STAT_NO_AP_FOUND
         elif status == network.STAT_WRONG_PASSWORD:     # Соединение не установлено, не верный пароль
-            self.dprint('WiFi: Failed due to incorrect password')
+            self.log('WiFiConnect => Failed due to incorrect password')
             return network.STAT_WRONG_PASSWORD
         elif status == network.STAT_IDLE:               # Соединение отсуствует, нет активности
-            self.dprint('WiFi: Idle state, no connection, and no activity')
+            self.log('WiFiConnect => Idle state, no connection, and no activity')
             return network.STAT_IDLE
         else: # Любые другие варианты статусов, вывод в лог
-            self.dprint('WiFi: Status', status)
+            self.log('WiFiConnect => Status', status)
             return status
 
 
